@@ -62,6 +62,31 @@ $nbLikes = $stmt->fetchColumn();
 $stmt = $db->prepare("SELECT id FROM likes WHERE memoire_id = ? AND utilisateur_id = ?");
 $stmt->execute([$memoireId, $userId]);
 $hasLiked = (bool) $stmt->fetch();
+
+// Traiter le commentaire
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action_type']) && $_POST['action_type'] === 'comment') {
+    if (verifyCSRFToken($_POST['csrf_token'] ?? '')) {
+        $contenu = trim($_POST['contenu'] ?? '');
+        if (!empty($contenu)) {
+            $stmt = $db->prepare("INSERT INTO commentaires (memoire_id, auteur_id, contenu) VALUES (?, ?, ?)");
+            $stmt->execute([$memoireId, $userId, $contenu]);
+            
+            // Notifier le professeur
+            if ($memoire['professeur_id']) {
+                createNotification(
+                    $memoire['professeur_id'],
+                    'Nouveau commentaire',
+                    $_SESSION['user_prenom'] . ' ' . $_SESSION['user_nom'] . ' a repondu a votre commentaire.',
+                    'info',
+                    'professeur/voir.php?id=' . $memoireId
+                );
+            }
+            
+            setFlash('success', 'Commentaire envoye.');
+            redirect('voir.php?id=' . $memoireId);
+        }
+    }
+}
 ?>
 
 <div class="dashboard-container">
@@ -131,6 +156,16 @@ $hasLiked = (bool) $stmt->fetch();
                     <h2 style="font-size: 1.1rem; color: var(--primary);">Commentaires (<?= count($commentaires) ?>)</h2>
                 </div>
                 <div class="card-body">
+                    <!-- Formulaire commentaire -->
+                    <form method="POST" action="" style="margin-bottom: 1.5rem;">
+                        <?= csrfField() ?>
+                        <input type="hidden" name="action_type" value="comment">
+                        <div class="form-group">
+                            <textarea name="contenu" class="form-control" rows="3" placeholder="Repondre au professeur ou ajouter un commentaire..." required></textarea>
+                        </div>
+                        <button type="submit" class="btn btn-primary btn-sm">Envoyer</button>
+                    </form>
+
                     <?php if (empty($commentaires)): ?>
                     <p style="color: var(--gray-400); text-align: center;">Aucun commentaire.</p>
                     <?php else: ?>

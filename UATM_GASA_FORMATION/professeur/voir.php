@@ -315,7 +315,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action_type'])) {
             <?php endif; ?>
         </div>
 
-        <div>
+        <div style="width: 320px; min-width: 280px;">
             <div class="card" style="margin-bottom: 1.5rem;">
                 <div class="card-header">
                     <h2 style="font-size: 1.1rem; color: var(--primary);">Fichier PDF</h2>
@@ -338,20 +338,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action_type'])) {
                             <?= $hasLiked ? '&#9829;' : '&#9825;' ?> <span class="like-count"><?= $nbLikes ?></span>
                         </button>
                     </div>
-                </div>
-            </div>
-
-            <div class="card">
-                <div class="card-header">
-                    <h2 style="font-size: 1.1rem; color: var(--primary);">Actions rapides</h2>
-                </div>
-                <div class="card-body">
-                    <p style="font-size: 0.85rem; color: var(--gray-500); margin-bottom: 1rem;">
-                        Lisez le memoire puis utilisez le formulaire de decision pour valider, demander des revisions ou rejeter.
-                    </p>
-                    <a href="<?= $baseUrl ?>assets/uploads/<?= sanitize($memoire['fichier_pdf']) ?>" class="btn btn-outline btn-block" download>
-                        Telecharger le PDF
-                    </a>
                 </div>
             </div>
         </div>

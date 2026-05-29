@@ -199,8 +199,11 @@ document.querySelectorAll('.like-btn').forEach(function(btn) {
         </div>
         
         <!-- Retour -->
-        <a href="<?= $baseUrl ?>pages/bibliotheque.php" class="btn btn-outline btn-block">
-            &larr; Retour a la bibliotheque
+        <a href="<?= $baseUrl ?>pages/bibliotheque.php" class="btn btn-outline btn-block" style="margin-bottom: 0.5rem;">
+            &larr; Bibliotheque
+        </a>
+        <a href="<?= $baseUrl ?>professeur/voir.php?id=<?= $memoireId ?>" class="btn btn-primary btn-block">
+            Retour au memoire
         </a>
     </div>
 </div>
