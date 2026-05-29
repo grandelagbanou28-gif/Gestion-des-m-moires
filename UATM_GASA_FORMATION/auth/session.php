@@ -45,25 +45,25 @@ function loginUser($email, $password) {
     return false;
 }
 
-function registerUser($nom, $prenom, $email, $password, $role_id = 4) {
+function registerUser($nom, $prenom, $email, $password, $role_id = 4, $niveau = null) {
     $db = getDBConnection();
     
-    // Vérifier si l'email existe déjà
+    // Verifier si l'email existe deja
     $stmt = $db->prepare("SELECT id FROM utilisateurs WHERE email = ? LIMIT 1");
     $stmt->execute([$email]);
     if ($stmt->fetch()) {
-        return ['success' => false, 'message' => 'Cet email est déjà utilisé.'];
+        return ['success' => false, 'message' => 'Cet email est deja utilise.'];
     }
     
     // Hasher le mot de passe
     $hashedPassword = password_hash($password, PASSWORD_DEFAULT);
     
-    // Insérer l'utilisateur
+    // Inserer l'utilisateur
     $stmt = $db->prepare("
-        INSERT INTO utilisateurs (role_id, nom, prenom, email, password, statut) 
-        VALUES (?, ?, ?, ?, ?, 'actif')
+        INSERT INTO utilisateurs (role_id, nom, prenom, email, password, statut, niveau) 
+        VALUES (?, ?, ?, ?, ?, 'actif', ?)
     ");
-    $stmt->execute([$role_id, $nom, $prenom, $email, $hashedPassword]);
+    $stmt->execute([$role_id, $nom, $prenom, $email, $hashedPassword, $niveau]);
     
     $userId = $db->lastInsertId();
     

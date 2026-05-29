@@ -10,7 +10,13 @@ if (!isLoggedIn() || !hasRole('etudiant')) {
 $userId = $_SESSION['user_id'];
 $db = getDBConnection();
 
-// Statistiques étudiant
+// Verifier le niveau
+$stmt = $db->prepare("SELECT niveau FROM utilisateurs WHERE id = ?");
+$stmt->execute([$userId]);
+$niveau = $stmt->fetchColumn();
+$peutDeposer = in_array($niveau, ['L3', 'M2']);
+
+// Statistiques etudiant
 $stmt = $db->prepare("SELECT COUNT(*) FROM memoires WHERE etudiant_id = ?");
 $stmt->execute([$userId]);
 $totalMemoires = $stmt->fetchColumn();
@@ -47,8 +53,14 @@ $notifications = $stmt->fetchAll();
 
 <div class="dashboard-container">
     <div class="dashboard-header">
-        <h1 class="dashboard-title">Mon Espace Étudiant</h1>
-        <a href="deposer.php" class="btn btn-primary">+ Déposer un mémoire</a>
+        <h1 class="dashboard-title">Mon Espace Etudiant 
+            <span style="font-size: 0.8rem; background: var(--gray-100); padding: 0.2rem 0.6rem; border-radius: 12px; font-weight: 400; color: var(--gray-500);"><?= sanitize($niveau ?: 'Niveau non defini') ?></span>
+        </h1>
+        <?php if ($peutDeposer): ?>
+        <a href="deposer.php" class="btn btn-primary">+ Deposer un memoire</a>
+        <?php else: ?>
+        <span style="font-size: 0.85rem; color: var(--gray-400);">Depot reserve aux L3 et M2</span>
+        <?php endif; ?>
     </div>
 
     <div class="dashboard-stats">

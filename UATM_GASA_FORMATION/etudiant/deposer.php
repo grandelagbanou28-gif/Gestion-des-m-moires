@@ -13,6 +13,14 @@ $userId = $_SESSION['user_id'];
 $errors = [];
 $success = '';
 
+// Verifier le niveau de l'etudiant
+$stmt = $db->prepare("SELECT niveau FROM utilisateurs WHERE id = ?");
+$stmt->execute([$userId]);
+$niveau = $stmt->fetchColumn();
+
+$niveauxDepot = ['L3', 'M2'];
+$peutDeposer = in_array($niveau, $niveauxDepot);
+
 // Récupérer les filières
 $filieres = $db->query("SELECT * FROM filieres WHERE statut = 'active' ORDER BY nom")->fetchAll();
 
@@ -107,6 +115,19 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     </div>
     <?php endif; ?>
 
+    <?php if (!$peutDeposer): ?>
+    <div class="card" style="max-width: 800px;">
+        <div class="card-body" style="text-align: center; padding: 3rem;">
+            <div style="font-size: 3rem; margin-bottom: 1rem;">&#128274;</div>
+            <h3 style="color: var(--gray-600); margin-bottom: 0.5rem;">Acces non autorise</h3>
+            <p style="color: var(--gray-500); margin-bottom: 1.5rem;">
+                Seuls les etudiants de <strong>Licence 3 (L3)</strong> et <strong>Master 2 (M2)</strong> peuvent deposer un memoire de fin d'annee.<br>
+                Votre niveau actuel : <strong><?= sanitize($niveau ?: 'Non defini') ?></strong>
+            </p>
+            <a href="index.php" class="btn btn-primary">Retour au tableau de bord</a>
+        </div>
+    </div>
+    <?php else: ?>
     <div class="card" style="max-width: 800px;">
         <div class="card-body">
             <form method="POST" action="" enctype="multipart/form-data" id="deposerForm" novalidate>
@@ -181,6 +202,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             </form>
         </div>
     </div>
+    <?php endif; ?>
 </div>
 
 <script>

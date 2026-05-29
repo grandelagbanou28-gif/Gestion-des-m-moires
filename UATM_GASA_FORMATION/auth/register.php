@@ -20,15 +20,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $password = $_POST['password'] ?? '';
         $password_confirm = $_POST['password_confirm'] ?? '';
         $role_id = intval($_POST['role_id'] ?? 4);
+        $niveau = trim($_POST['niveau'] ?? '');
         
         $formData = compact('nom', 'prenom', 'email');
         
         // Validation
         if (empty($nom)) $errors[] = 'Le nom est requis.';
-        if (strlen($nom) < 2) $errors[] = 'Le nom doit contenir au moins 2 caractères.';
+        if (strlen($nom) < 2) $errors[] = 'Le nom doit contenir au moins 2 caracteres.';
         
-        if (empty($prenom)) $errors[] = 'Le prénom est requis.';
-        if (strlen($prenom) < 2) $errors[] = 'Le prénom doit contenir au moins 2 caractères.';
+        if (empty($prenom)) $errors[] = 'Le prenom est requis.';
+        if (strlen($prenom) < 2) $errors[] = 'Le prenom doit contenir au moins 2 caracteres.';
         
         if (empty($email)) {
             $errors[] = 'L\'email est requis.';
@@ -51,7 +52,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
         
         if (empty($errors)) {
-            $result = registerUser($nom, $prenom, $email, $password, $role_id);
+            $result = registerUser($nom, $prenom, $email, $password, $role_id, $niveau);
             
             if ($result['success']) {
                 setFlash('success', 'Compte créé avec succès. Vous pouvez maintenant vous connecter.');
@@ -110,8 +111,20 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             <div class="form-group">
                 <label for="role_id">Type de compte</label>
                 <select id="role_id" name="role_id" class="form-control" required>
-                    <option value="4" <?= ($role_id ?? 4) == 4 ? 'selected' : '' ?>>Étudiant</option>
+                    <option value="4" <?= ($role_id ?? 4) == 4 ? 'selected' : '' ?>>Etudiant</option>
                     <option value="3" <?= ($role_id ?? 0) == 3 ? 'selected' : '' ?>>Professeur</option>
+                </select>
+            </div>
+
+            <div class="form-group" id="niveauGroup">
+                <label for="niveau">Niveau d'etudes</label>
+                <select id="niveau" name="niveau" class="form-control">
+                    <option value="">-- Selectionner --</option>
+                    <option value="L1" <?= ($niveau ?? '') == 'L1' ? 'selected' : '' ?>>Licence 1 (L1)</option>
+                    <option value="L2" <?= ($niveau ?? '') == 'L2' ? 'selected' : '' ?>>Licence 2 (L2)</option>
+                    <option value="L3" <?= ($niveau ?? '') == 'L3' ? 'selected' : '' ?>>Licence 3 (L3)</option>
+                    <option value="M1" <?= ($niveau ?? '') == 'M1' ? 'selected' : '' ?>>Master 1 (M1)</option>
+                    <option value="M2" <?= ($niveau ?? '') == 'M2' ? 'selected' : '' ?>>Master 2 (M2)</option>
                 </select>
             </div>
             

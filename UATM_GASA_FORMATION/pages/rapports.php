@@ -280,28 +280,68 @@ $activiteMensuelle = $db->query("
         <div class="card" style="grid-column: 1 / -1;">
             <div class="card-header">
                 <h2 style="font-size: 1.1rem; color: var(--primary);">Activite mensuelle (12 derniers mois)</h2>
+                <?php if (!empty($activiteMensuelle)): ?>
+                <span style="font-size: 0.85rem; color: var(--gray-500);">Total: <?= array_sum(array_column($activiteMensuelle, 'total')) ?> actions</span>
+                <?php endif; ?>
             </div>
             <div class="card-body">
                 <?php if (empty($activiteMensuelle)): ?>
-                <p style="text-align: center; color: var(--gray-400); padding: 2rem;">Aucune donnee.</p>
+                <p style="text-align: center; color: var(--gray-400); padding: 3rem;">Aucune donnee d'activite pour le moment.</p>
                 <?php else: ?>
-                <div style="overflow-x: auto;">
-                    <div style="display: flex; align-items: flex-end; gap: 2px; height: 180px; padding: 1rem 0.5rem 0; min-width: 600px;">
-                        <?php 
-                        $maxVal = max(array_column($activiteMensuelle, 'total'));
-                        foreach ($activiteMensuelle as $am): 
-                            $height = $maxVal > 0 ? max(8, ($am['total'] / $maxVal) * 140) : 8;
+                <?php 
+                $maxVal = max(array_column($activiteMensuelle, 'total'));
+                $moyenne = round(array_sum(array_column($activiteMensuelle, 'total')) / count($activiteMensuelle), 1);
+                $couleurs = ['#1a3a5c', '#2c5282', '#3182ce', '#4299e1', '#63b3ed', '#90cdf4'];
+                ?>
+                
+                <!-- Legendes -->
+                <div style="display: flex; gap: 1.5rem; margin-bottom: 1.5rem; font-size: 0.8rem; color: var(--gray-500);">
+                    <span><span style="display: inline-block; width: 12px; height: 12px; background: var(--primary); border-radius: 2px; margin-right: 0.3rem;"></span> Actions</span>
+                    <span><span style="display: inline-block; width: 12px; height: 2px; background: var(--danger); margin-right: 0.3rem;"></span> Moyenne (<?= $moyenne ?>)</span>
+                </div>
+                
+                <!-- Graphique -->
+                <div style="position: relative; padding: 1rem 0;">
+                    <!-- Ligne de moyenne -->
+                    <?php if ($maxVal > 0): ?>
+                    <div style="position: absolute; left: 40px; right: 20px; border-top: 2px dashed var(--danger); opacity: 0.5; z-index: 1; top: <?= (1 - $moyenne / $maxVal) * 100 ?>%;"></div>
+                    <?php endif; ?>
+                    
+                    <div style="display: flex; align-items: flex-end; gap: 6px; height: 200px; padding: 0 40px 0 0;">
+                        <!-- Axe Y -->
+                        <div style="position: absolute; left: 0; top: 0; bottom: 30px; display: flex; flex-direction: column; justify-content: space-between; font-size: 0.7rem; color: var(--gray-400);">
+                            <span><?= $maxVal ?></span>
+                            <span><?= round($maxVal / 2) ?></span>
+                            <span>0</span>
+                        </div>
+                        
+                        <?php foreach ($activiteMensuelle as $i => $am): 
+                            $height = $maxVal > 0 ? max(4, ($am['total'] / $maxVal) * 170) : 4;
+                            $colorIndex = $i % count($couleurs);
+                            $isAbove = $am['total'] >= $moyenne;
                         ?>
-                        <div style="flex: 1; display: flex; flex-direction: column; align-items: center; gap: 4px;">
-                            <span style="font-size: 0.7rem; font-weight: 700; color: var(--primary);"><?= $am['total'] ?></span>
-                            <div style="width: 100%; max-width: 50px; height: <?= $height ?>px; background: linear-gradient(180deg, var(--accent) 0%, var(--primary) 100%); border-radius: 4px 4px 0 0;"></div>
+                        <div style="flex: 1; display: flex; flex-direction: column; align-items: center; gap: 4px; position: relative; z-index: 2;">
+                            <span style="font-size: 0.7rem; font-weight: 700; color: <?= $isAbove ? 'var(--success)' : 'var(--gray-500)' ?>;"><?= $am['total'] ?></span>
+                            <div style="width: 100%; max-width: 45px; height: <?= $height ?>px; background: <?= $isAbove ? 'linear-gradient(180deg, #38a169 0%, #276749 100%)' : 'linear-gradient(180deg, ' . $couleurs[$colorIndex] . ' 0%, var(--primary-dark) 100%)' ?>; border-radius: 4px 4px 0 0; transition: all 0.3s; cursor: pointer; position: relative;" 
+                                 onmouseover="this.style.transform='scaleY(1.05)'; this.style.boxShadow='0 2px 8px rgba(0,0,0,0.2)'" 
+                                 onmouseout="this.style.transform='scaleY(1)'; this.style.boxShadow='none'"
+                                 title="<?= $am['total'] ?> actions">
+                            </div>
                         </div>
                         <?php endforeach; ?>
                     </div>
-                    <div style="display: flex; gap: 2px; padding: 0 0.5rem; border-top: 1px solid var(--gray-200); min-width: 600px;">
-                        <?php foreach ($activiteMensuelle as $am): ?>
-                        <div style="flex: 1; text-align: center; padding: 0.5rem 0;">
-                            <span style="font-size: 0.7rem; color: var(--gray-500);"><?= substr($am['mois'], 5) ?>/<?= substr($am['mois'], 2, 2) ?></span>
+                    
+                    <!-- Axe X -->
+                    <div style="display: flex; gap: 6px; padding-left: 0; margin-top: 6px; border-top: 1px solid var(--gray-200); padding-top: 6px;">
+                        <?php foreach ($activiteMensuelle as $am): 
+                            $moisFr = ['', 'Jan', 'Fev', 'Mar', 'Avr', 'Mai', 'Jun', 'Jul', 'Aou', 'Sep', 'Oct', 'Nov', 'Dec'];
+                            $m = intval(substr($am['mois'], 5, 2));
+                            $moisLabel = $moisFr[$m] ?? '';
+                        ?>
+                        <div style="flex: 1; text-align: center;">
+                            <span style="font-size: 0.7rem; color: var(--gray-500);"><?= $moisLabel ?></span>
+                            <br>
+                            <span style="font-size: 0.65rem; color: var(--gray-400);"><?= substr($am['mois'], 2, 2) ?></span>
                         </div>
                         <?php endforeach; ?>
                     </div>
