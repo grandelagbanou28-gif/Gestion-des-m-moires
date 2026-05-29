@@ -19,19 +19,18 @@ $stmt = $db->prepare("
     FROM memoires m 
     LEFT JOIN filieres f ON m.filiere_id = f.id 
     LEFT JOIN utilisateurs u ON m.etudiant_id = u.id
-    WHERE m.id = ? AND m.statut = 'valide'
+    WHERE m.id = ? AND (m.statut = 'valide' OR m.professeur_id = ? OR m.etudiant_id = ?)
 ");
-$stmt->execute([$memoireId]);
+$stmt->execute([$memoireId, $_SESSION['user_id'], $_SESSION['user_id']]);
 $memoire = $stmt->fetch();
 
 if (!$memoire) {
-    setFlash('error', 'Memoire non trouve ou non valide.');
+    setFlash('error', 'Memoire non trouve ou acces non autorise.');
     redirect($baseUrl . 'pages/bibliotheque.php');
 }
 
 $fichierPath = $baseUrl . 'assets/uploads/' . $memoire['fichier_pdf'];
 
-// Likes
 $userId = $_SESSION['user_id'];
 $stmt = $db->prepare("SELECT COUNT(*) FROM likes WHERE memoire_id = ?");
 $stmt->execute([$memoireId]);
@@ -43,42 +42,108 @@ $hasLiked = (bool) $stmt->fetch();
 ?>
 
 <style>
-body {
-    -webkit-user-select: none;
-    -moz-user-select: none;
-    -ms-user-select: none;
-    user-select: none;
-    overflow: hidden;
-}
-.no-screenshot {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    z-index: 9999;
-    pointer-events: none;
-}
+body { overflow: hidden; margin: 0; padding: 0; }
+#viewer-container { width: 100%; height: calc(100vh - 64px); overflow-y: auto; background: #525659; text-align: center; }
+#viewer-container canvas { margin: 10px auto; display: block; box-shadow: 0 2px 8px rgba(0,0,0,0.3); }
+.page-info { color: #ccc; padding: 10px; font-size: 14px; }
+.nav-buttons { position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); z-index: 100; display: flex; gap: 10px; background: rgba(0,0,0,0.7); padding: 10px 20px; border-radius: 8px; }
+.nav-buttons button { background: #fff; border: none; padding: 8px 16px; border-radius: 4px; cursor: pointer; font-weight: bold; }
+.nav-buttons button:hover { background: #ddd; }
+#pageInput { width: 60px; text-align: center; border: none; padding: 8px; border-radius: 4px; }
 </style>
 
-<div class="no-screenshot" id="noScreenshot"></div>
-
-<div style="display: flex; height: calc(100vh - 64px); overflow: hidden;">
-    <!-- PDF Viewer -->
-    <div style="flex: 1; position: relative; background: #525659;">
-        <iframe src="<?= $fichierPath ?>" 
-                style="width: 100%; height: 100%; border: none;"
-                id="pdfFrame"
-                sandbox="allow-same-origin allow-scripts"
-                allowfullscreen>
-        </iframe>
-        
-        <!-- Overlay invisible pour bloquer clic droit -->
-        <div style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 10;" 
-             oncontextmenu="return false;" 
-             onmousedown="return false;">
-        </div>
+<div id="viewer-container">
+    <div class="page-info" id="pageInfo">Chargement du PDF...</div>
+    <canvas id="pdfCanvas"></canvas>
+    <div class="nav-buttons">
+        <button onclick="prevPage()">&laquo; Precedent</button>
+        <input type="number" id="pageInput" value="1" min="1" onchange="goToPage(this.value)">
+        <button onclick="nextPage()">Suivant &raquo;</button>
+        <span id="totalPages" style="color: #fff; padding: 8px;"></span>
     </div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+<script>
+pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+
+var pdfDoc = null;
+var pageNum = 1;
+var pageRendering = false;
+var pageNumPending = null;
+var scale = 1.5;
+var canvas = document.getElementById('pdfCanvas');
+var ctx = canvas.getContext('2d');
+
+function renderPage(num) {
+    pageRendering = true;
+    pdfDoc.getPage(num).then(function(page) {
+        var viewport = page.getViewport({ scale: scale });
+        canvas.height = viewport.height;
+        canvas.width = viewport.width;
+        var renderContext = { canvasContext: ctx, viewport: viewport };
+        page.render(renderContext).promise.then(function() {
+            pageRendering = false;
+            if (pageNumPending !== null) {
+                renderPage(pageNumPending);
+                pageNumPending = null;
+            }
+        });
+    });
+    document.getElementById('pageInfo').textContent = 'Page ' + num;
+    document.getElementById('pageInput').value = num;
+}
+
+function queueRenderPage(num) {
+    if (pageRendering) { pageNumPending = num; } else { renderPage(num); }
+}
+
+function prevPage() { if (pageNum <= 1) return; pageNum--; queueRenderPage(pageNum); }
+function nextPage() { if (pageNum >= pdfDoc.numPages) return; pageNum++; queueRenderPage(pageNum); }
+function goToPage(num) { num = parseInt(num); if (num >= 1 && num <= pdfDoc.numPages) { pageNum = num; queueRenderPage(num); } }
+
+var url = '<?= $fichierPath ?>';
+pdfjsLib.getDocument(url).promise.then(function(pdf) {
+    pdfDoc = pdf;
+    document.getElementById('totalPages').textContent = '/ ' + pdf.numPages;
+    renderPage(pageNum);
+});
+</script>
+
+<script>
+document.addEventListener('contextmenu', function(e) { e.preventDefault(); return false; });
+document.addEventListener('keydown', function(e) {
+    if (e.ctrlKey && (e.key === 's' || e.key === 'p' || e.key === 'u' || e.key === 'j')) { e.preventDefault(); return false; }
+    if (e.key === 'F12' || (e.ctrlKey && e.shiftKey && e.key === 'I')) { e.preventDefault(); return false; }
+    if (e.key === 'PrintScreen') { navigator.clipboard.writeText(''); e.preventDefault(); return false; }
+});
+
+document.querySelectorAll('.like-btn').forEach(function(btn) {
+    btn.addEventListener('click', function() {
+        var id = this.dataset.id;
+        var el = this;
+        fetch('<?= $baseUrl ?>pages/like.php', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/x-www-form-urlencoded'},
+            body: 'memoire_id=' + id
+        })
+        .then(function(r) { return r.json(); })
+        .then(function(data) {
+            if (data.success) {
+                if (data.liked) {
+                    el.style.borderColor = 'var(--danger)';
+                    el.style.color = 'var(--danger)';
+                    el.innerHTML = '&#9829; <span class="like-count">' + data.count + '</span>';
+                } else {
+                    el.style.borderColor = 'var(--gray-300)';
+                    el.style.color = 'var(--gray-500)';
+                    el.innerHTML = '&#9825; <span class="like-count">' + data.count + '</span>';
+                }
+            }
+        });
+    });
+});
+</script>
     
     <!-- Sidebar info -->
     <div style="width: 320px; background: var(--white); overflow-y: auto; border-left: 1px solid var(--gray-200); padding: 1.5rem;">
@@ -139,73 +204,5 @@ body {
         </a>
     </div>
 </div>
-
-<script>
-// Bloquer clic droit
-document.addEventListener('contextmenu', function(e) { e.preventDefault(); return false; });
-
-// Bloquer clic molette
-document.addEventListener('mousedown', function(e) { if (e.button === 1) { e.preventDefault(); return false; } });
-
-// Bloquer raccourcis clavier
-document.addEventListener('keydown', function(e) {
-    // Ctrl+S = sauvegarder
-    if (e.ctrlKey && e.key === 's') { e.preventDefault(); return false; }
-    // Ctrl+P = imprimer
-    if (e.ctrlKey && e.key === 'p') { e.preventDefault(); return false; }
-    // Ctrl+U = source
-    if (e.ctrlKey && e.key === 'u') { e.preventDefault(); return false; }
-    // Ctrl+J = telecharger
-    if (e.ctrlKey && e.key === 'j') { e.preventDefault(); return false; }
-    // Ctrl+Shift+I = dev tools
-    if (e.ctrlKey && e.shiftKey && e.key === 'I') { e.preventDefault(); return false; }
-    // F12 = dev tools
-    if (e.key === 'F12') { e.preventDefault(); return false; }
-    // Print Screen
-    if (e.key === 'PrintScreen') { 
-        navigator.clipboard.writeText(''); 
-        e.preventDefault(); 
-        return false; 
-    }
-});
-
-// Like AJAX
-document.querySelectorAll('.like-btn').forEach(function(btn) {
-    btn.addEventListener('click', function() {
-        var id = this.dataset.id;
-        var el = this;
-        fetch('<?= $baseUrl ?>pages/like.php', {
-            method: 'POST',
-            headers: {'Content-Type': 'application/x-www-form-urlencoded'},
-            body: 'memoire_id=' + id
-        })
-        .then(function(r) { return r.json(); })
-        .then(function(data) {
-            if (data.success) {
-                var countEl = el.querySelector('.like-count');
-                countEl.textContent = data.count;
-                if (data.liked) {
-                    el.style.borderColor = 'var(--danger)';
-                    el.style.background = '#fff5f5';
-                    el.style.color = 'var(--danger)';
-                    el.innerHTML = '&#9829; Aime (<span class="like-count">' + data.count + '</span>)';
-                } else {
-                    el.style.borderColor = 'var(--gray-300)';
-                    el.style.background = 'var(--white)';
-                    el.style.color = 'var(--gray-600)';
-                    el.innerHTML = '&#9825; Aimer (<span class="like-count">' + data.count + '</span>)';
-                }
-            }
-        });
-    });
-});
-
-// Detecter Print Screen
-window.addEventListener('keyup', function(e) {
-    if (e.key === 'PrintScreen') {
-        alert('La capture d\'ecran n\'est pas autorisee.');
-    }
-});
-</script>
 
 <?php require_once __DIR__ . '/../includes/footer.php'; ?>

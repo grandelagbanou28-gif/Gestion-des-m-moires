@@ -33,23 +33,26 @@ if (!in_array($memoire['statut'], ['brouillon', 'rejete'])) {
 }
 
 $filieres = $db->query("SELECT * FROM filieres WHERE statut = 'active' ORDER BY nom")->fetchAll();
+$professeurs = $db->query("SELECT id, nom, prenom FROM utilisateurs WHERE role_id = 3 AND statut = 'actif' ORDER BY nom, prenom")->fetchAll();
 $errors = [];
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if (!verifyCSRFToken($_POST['csrf_token'] ?? '')) {
-        $errors[] = 'Token de sécurité invalide.';
+        $errors[] = 'Token de securite invalide.';
     } else {
         $titre = trim($_POST['titre'] ?? '');
         $description = trim($_POST['description'] ?? '');
         $filiere_id = intval($_POST['filiere_id'] ?? 0);
+        $professeur_id = intval($_POST['professeur_id'] ?? 0);
         $annee_academique = trim($_POST['annee_academique'] ?? '');
         $mot_cles = trim($_POST['mot_cles'] ?? '');
 
         if (empty($titre)) $errors[] = 'Le titre est requis.';
-        if (strlen($titre) < 5) $errors[] = 'Le titre doit contenir au moins 5 caractères.';
+        if (strlen($titre) < 5) $errors[] = 'Le titre doit contenir au moins 5 caracteres.';
         if (empty($description)) $errors[] = 'La description est requise.';
-        if ($filiere_id <= 0) $errors[] = 'Filière invalide.';
-        if (empty($annee_academique)) $errors[] = 'L\'année académique est requise.';
+        if ($filiere_id <= 0) $errors[] = 'Filiere invalide.';
+        if ($professeur_id <= 0) $errors[] = 'Veuillez choisir un maitre de memoire.';
+        if (empty($annee_academique)) $errors[] = 'L\'annee academique est requise.';
 
         // Nouveau fichier optionnel
         $newFilename = $memoire['fichier_pdf'];
@@ -70,15 +73,24 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         if (empty($errors)) {
             $stmt = $db->prepare("
                 UPDATE memoires 
-                SET titre = ?, description = ?, filiere_id = ?, annee_academique = ?, mot_cles = ?, 
+                SET titre = ?, description = ?, filiere_id = ?, professeur_id = ?, annee_academique = ?, mot_cles = ?, 
                     fichier_pdf = ?, taille_fichier = ?, statut = 'soumis', updated_at = NOW()
                 WHERE id = ? AND etudiant_id = ?
             ");
-            $stmt->execute([$titre, $description, $filiere_id, $annee_academique, $mot_cles, $newFilename, $newSize, $memoireId, $userId]);
+            $stmt->execute([$titre, $description, $filiere_id, $professeur_id, $annee_academique, $mot_cles, $newFilename, $newSize, $memoireId, $userId]);
 
-            logAction($userId, 'modifier', 'memoire', $memoireId, 'Modification mémoire: ' . $titre);
+            // Notifier le nouveau professeur
+            createNotification(
+                $professeur_id,
+                'Memoire soumis pour evaluation',
+                $_SESSION['user_prenom'] . ' ' . $_SESSION['user_nom'] . ' vous a designe comme maitre de memoire pour "' . $titre . '".',
+                'info',
+                'professeur/voir.php?id=' . $memoireId
+            );
 
-            setFlash('success', 'Mémoire modifié et resoumis avec succès !');
+            logAction($userId, 'modifier', 'memoire', $memoireId, 'Modification memoire: ' . $titre);
+
+            setFlash('success', 'Memoire modifie et resoumis avec succes !');
             redirect('memoires.php');
         }
     }
@@ -121,24 +133,35 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
                 <div class="form-row">
                     <div class="form-group">
-                        <label for="filiere_id">Filière *</label>
+                        <label for="filiere_id">Filiere *</label>
                         <select id="filiere_id" name="filiere_id" class="form-control" required>
-                            <option value="">-- Sélectionner --</option>
+                            <option value="">-- Selectionner --</option>
                             <?php foreach ($filieres as $f): ?>
                             <option value="<?= $f['id'] ?>" <?= (intval($_POST['filiere_id'] ?? $memoire['filiere_id']) == $f['id']) ? 'selected' : '' ?>>
                                 <?= sanitize($f['nom']) ?>
                             </option>
                             <?php endforeach; ?>
                         </select>
-                        <span class="form-error" id="filiereError"></span>
                     </div>
 
                     <div class="form-group">
-                        <label for="annee_academique">Année académique *</label>
-                        <input type="text" id="annee_academique" name="annee_academique" class="form-control" 
-                               value="<?= sanitize($_POST['annee_academique'] ?? $memoire['annee_academique']) ?>" required>
-                        <span class="form-error" id="anneeError"></span>
+                        <label for="professeur_id">Maitre de memoire *</label>
+                        <select id="professeur_id" name="professeur_id" class="form-control" required>
+                            <option value="">-- Selectionner --</option>
+                            <?php foreach ($professeurs as $p): ?>
+                            <option value="<?= $p['id'] ?>" <?= (intval($_POST['professeur_id'] ?? $memoire['professeur_id'] ?? 0) == $p['id']) ? 'selected' : '' ?>>
+                                <?= sanitize($p['prenom'] . ' ' . $p['nom']) ?>
+                            </option>
+                            <?php endforeach; ?>
+                        </select>
                     </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="annee_academique">Annee academique *</label>
+                    <input type="text" id="annee_academique" name="annee_academique" class="form-control" 
+                           value="<?= sanitize($_POST['annee_academique'] ?? $memoire['annee_academique']) ?>" required>
+                    <span class="form-error" id="anneeError"></span>
                 </div>
 
                 <div class="form-group">
