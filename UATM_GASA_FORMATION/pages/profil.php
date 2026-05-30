@@ -50,25 +50,26 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $prenom = trim($_POST['prenom'] ?? '');
             $email = trim($_POST['email'] ?? '');
             $telephone = trim($_POST['telephone'] ?? '');
+            $niveau = trim($_POST['niveau'] ?? '');
 
             if (empty($nom)) $errors[] = 'Le nom est requis.';
-            if (empty($prenom)) $errors[] = 'Le prénom est requis.';
+            if (empty($prenom)) $errors[] = 'Le prenom est requis.';
             if (empty($email) || !filter_var($email, FILTER_VALIDATE_EMAIL)) $errors[] = 'Email invalide.';
 
-            // Vérifier email doublon
+            // Verifier email doublon
             $stmt = $db->prepare("SELECT id FROM utilisateurs WHERE email = ? AND id != ? LIMIT 1");
             $stmt->execute([$email, $userId]);
-            if ($stmt->fetch()) $errors[] = 'Cet email est déjà utilisé.';
+            if ($stmt->fetch()) $errors[] = 'Cet email est deja utilise.';
 
             if (empty($errors)) {
-                $stmt = $db->prepare("UPDATE utilisateurs SET nom = ?, prenom = ?, email = ?, telephone = ? WHERE id = ?");
-                $stmt->execute([$nom, $prenom, $email, $telephone, $userId]);
+                $stmt = $db->prepare("UPDATE utilisateurs SET nom = ?, prenom = ?, email = ?, telephone = ?, niveau = ? WHERE id = ?");
+                $stmt->execute([$nom, $prenom, $email, $telephone, $niveau, $userId]);
                 
                 $_SESSION['user_nom'] = $nom;
                 $_SESSION['user_prenom'] = $prenom;
                 $_SESSION['user_email'] = $email;
 
-                setFlash('success', 'Profil mis à jour avec succès.');
+                setFlash('success', 'Profil mis a jour avec succes.');
                 redirect('profil.php');
             }
         }
@@ -205,9 +206,24 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         </div>
 
                         <div class="form-group">
-                            <label for="telephone">Téléphone</label>
+                            <label for="telephone">Telephone</label>
                             <input type="tel" id="telephone" name="telephone" class="form-control" value="<?= sanitize($_POST['telephone'] ?? $user['telephone']) ?>">
                         </div>
+
+                        <?php if (hasRole('etudiant')): ?>
+                        <div class="form-group">
+                            <label for="niveau">Niveau d'etudes</label>
+                            <select id="niveau" name="niveau" class="form-control">
+                                <option value="">-- Selectionner --</option>
+                                <option value="L1" <?= ($user['niveau'] ?? '') == 'L1' ? 'selected' : '' ?>>Licence 1 (L1)</option>
+                                <option value="L2" <?= ($user['niveau'] ?? '') == 'L2' ? 'selected' : '' ?>>Licence 2 (L2)</option>
+                                <option value="L3" <?= ($user['niveau'] ?? '') == 'L3' ? 'selected' : '' ?>>Licence 3 (L3)</option>
+                                <option value="M1" <?= ($user['niveau'] ?? '') == 'M1' ? 'selected' : '' ?>>Master 1 (M1)</option>
+                                <option value="M2" <?= ($user['niveau'] ?? '') == 'M2' ? 'selected' : '' ?>>Master 2 (M2)</option>
+                            </select>
+                            <span class="form-help">Mettez a jour votre niveau au debut de chaque annee.</span>
+                        </div>
+                        <?php endif; ?>
 
                         <button type="submit" class="btn btn-primary">Enregistrer les modifications</button>
                     </form>

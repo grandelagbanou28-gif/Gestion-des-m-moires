@@ -24,8 +24,13 @@ $peutDeposer = in_array($niveau, $niveauxDepot);
 // Récupérer les filières
 $filieres = $db->query("SELECT * FROM filieres WHERE statut = 'active' ORDER BY nom")->fetchAll();
 
-// Récupérer les professeurs
+// Récupérer les professeurs actifs uniquement
 $professeurs = $db->query("SELECT id, nom, prenom FROM utilisateurs WHERE role_id = 3 AND statut = 'actif' ORDER BY nom, prenom")->fetchAll();
+
+// Récupérer les étudiants pour le co-auteur (sauf l'étudiant connecté)
+$etudiants = $db->prepare("SELECT id, nom, prenom, niveau FROM utilisateurs WHERE role_id = 4 AND statut = 'actif' AND id != ? ORDER BY nom, prenom");
+$etudiants->execute([$userId]);
+$etudiants = $etudiants->fetchAll();
 
 // Traitement du formulaire
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
@@ -38,6 +43,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $professeur_id = intval($_POST['professeur_id'] ?? 0);
         $annee_academique = trim($_POST['annee_academique'] ?? '');
         $mot_cles = trim($_POST['mot_cles'] ?? '');
+        $type_travail = $_POST['type_travail'] ?? 'individuel';
+        $co_auteur_id = intval($_POST['co_auteur_id'] ?? 0);
 
         // Validation
         if (empty($titre)) $errors[] = 'Le titre est requis.';
@@ -46,6 +53,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         if (empty($description)) $errors[] = 'La description est requise.';
         if ($filiere_id <= 0) $errors[] = 'Veuillez selectionner une filiere.';
         if ($professeur_id <= 0) $errors[] = 'Veuillez choisir un maitre de memoire.';
+        if ($type_travail === 'binome' && $co_auteur_id <= 0) $errors[] = 'Veuillez choisir un co-auteur.';
+        if ($type_travail === 'binome' && $co_auteur_id == $userId) $errors[] = 'Vous ne pouvez pas vous co-auteur.';
         if (empty($annee_academique)) $errors[] = 'L\'annee academique est requise.';
 
         // Vérifier le fichier
@@ -60,11 +69,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             if ($uploadResult['success']) {
                 // Enregistrer en base
                 $stmt = $db->prepare("
-                    INSERT INTO memoires (etudiant_id, filiere_id, professeur_id, titre, description, fichier_pdf, taille_fichier, annee_academique, statut, mot_cles) 
-                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'soumis', ?)
+                    INSERT INTO memoires (etudiant_id, co_auteur_id, filiere_id, professeur_id, titre, description, fichier_pdf, taille_fichier, annee_academique, statut, mot_cles, type_travail) 
+                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 'soumis', ?, ?)
                 ");
                 $stmt->execute([
                     $userId,
+                    $type_travail === 'binome' ? $co_auteur_id : null,
                     $filiere_id,
                     $professeur_id,
                     $titre,
@@ -72,7 +82,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     $uploadResult['filename'],
                     $uploadResult['size'],
                     $annee_academique,
-                    $mot_cles
+                    $mot_cles,
+                    $type_travail
                 ]);
 
                 $memoireId = $db->lastInsertId();
@@ -81,15 +92,24 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 logAction($userId, 'deposer', 'memoire', $memoireId, 'Depot memoire: ' . $titre);
 
                 // Notifier le professeur choisi
+                $notifMsg = $_SESSION['user_prenom'] . ' ' . $_SESSION['user_nom'];
+                if ($type_travail === 'binome' && $co_auteur_id) {
+                    $stmtCo = $db->prepare("SELECT prenom, nom FROM utilisateurs WHERE id = ?");
+                    $stmtCo->execute([$co_auteur_id]);
+                    $coAuteur = $stmtCo->fetch();
+                    $notifMsg .= ' et ' . ($coAuteur ? $coAuteur['prenom'] . ' ' . $coAuteur['nom'] : 'un co-auteur');
+                }
+                $notifMsg .= ' vous a designe comme maitre de memoire pour "' . $titre . '".';
+                
                 createNotification(
                     $professeur_id,
                     'Nouveau memoire soumis',
-                    $_SESSION['user_prenom'] . ' ' . $_SESSION['user_nom'] . ' vous a designe comme maitre de memoire pour "' . $titre . '".',
+                    $notifMsg,
                     'info',
                     'professeur/voir.php?id=' . $memoireId
                 );
 
-                setFlash('success', 'Mémoire déposé avec succès !');
+                setFlash('success', 'Memoire depose avec succes !');
                 redirect('memoires.php');
             } else {
                 $errors[] = $uploadResult['message'];
@@ -144,6 +164,28 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     <label for="description">Description / Résumé *</label>
                     <textarea id="description" name="description" class="form-control" rows="5" required><?= sanitize($_POST['description'] ?? '') ?></textarea>
                     <span class="form-error" id="descriptionError"></span>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="type_travail">Type de travail *</label>
+                        <select id="type_travail" name="type_travail" class="form-control" required>
+                            <option value="individuel" <?= ($_POST['type_travail'] ?? 'individuel') == 'individuel' ? 'selected' : '' ?>>Individuel</option>
+                            <option value="binome" <?= ($_POST['type_travail'] ?? '') == 'binome' ? 'selected' : '' ?>>Binome (2 etudiants)</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group" id="coAuteurGroup" style="display: none;">
+                        <label for="co_auteur_id">Co-auteur *</label>
+                        <select id="co_auteur_id" name="co_auteur_id" class="form-control">
+                            <option value="">-- Selectionner un etudiant --</option>
+                            <?php foreach ($etudiants as $e): ?>
+                            <option value="<?= $e['id'] ?>" <?= (intval($_POST['co_auteur_id'] ?? 0) == $e['id']) ? 'selected' : '' ?>>
+                                <?= sanitize($e['prenom'] . ' ' . $e['nom'] . ' (' . ($e['niveau'] ?? '') . ')') ?>
+                            </option>
+                            <?php endforeach; ?>
+                        </select>
+                    </div>
                 </div>
 
                 <div class="form-row">
@@ -206,6 +248,25 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 </div>
 
 <script>
+// Afficher/masquer le champ co-auteur
+document.getElementById('type_travail').addEventListener('change', function() {
+    var coAuteurGroup = document.getElementById('coAuteurGroup');
+    var coAuteurSelect = document.getElementById('co_auteur_id');
+    if (this.value === 'binome') {
+        coAuteurGroup.style.display = 'block';
+        coAuteurSelect.required = true;
+    } else {
+        coAuteurGroup.style.display = 'none';
+        coAuteurSelect.required = false;
+        coAuteurSelect.value = '';
+    }
+});
+
+// Initialiser au chargement
+if (document.getElementById('type_travail').value === 'binome') {
+    document.getElementById('coAuteurGroup').style.display = 'block';
+}
+
 document.getElementById('deposerForm').addEventListener('submit', function(e) {
     let valid = true;
     

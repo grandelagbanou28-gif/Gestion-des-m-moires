@@ -27,7 +27,7 @@ function loginUser($email, $password) {
         // Régénérer la session
         session_regenerate_id(true);
         
-        // Stocker les données en session
+        // Stocker les donnees en session
         $_SESSION['user_id'] = $user['id'];
         $_SESSION['user_nom'] = $user['nom'];
         $_SESSION['user_prenom'] = $user['prenom'];
@@ -35,6 +35,7 @@ function loginUser($email, $password) {
         $_SESSION['user_role'] = $user['role_nom'];
         $_SESSION['user_role_id'] = $user['role_id'];
         $_SESSION['user_avatar'] = $user['avatar'];
+        $_SESSION['user_niveau'] = $user['niveau'];
         
         // Journaliser
         logAction($user['id'], 'connexion', 'utilisateur', $user['id']);
