@@ -7,10 +7,10 @@
  * 4. Une fois installe, SUPPRIME ce fichier
  */
 
-$host = getenv('DB_HOST') ?: 'localhost';
-$user = getenv('DB_USER') ?: 'root';
-$pass = getenv('DB_PASS') ?: '';
-$dbname = getenv('DB_NAME') ?: 'uatm_gasa_memoires';
+$host = 'sql308.infinityfree.com';
+$user = 'if0_42086197';
+$pass = 'test280601';
+$dbname = 'if0_42086197_if0_gestiondesmemoires_uatm';
 
 $step = $_GET['step'] ?? 1;
 $message = '';

@@ -1,13 +1,13 @@
 <?php
 /**
- * Configuration de la base de données - UATM GASA FORMATION
- * Connexion PDO sécurisée avec prepared statements
+ * Configuration de la base de donnees - UATM GASA FORMATION
+ * InfinityFree MySQL
  */
 
-define('DB_HOST', getenv('DB_HOST') ?: 'localhost');
-define('DB_NAME', getenv('DB_NAME') ?: 'uatm_gasa_memoires');
-define('DB_USER', getenv('DB_USER') ?: 'root');
-define('DB_PASS', getenv('DB_PASS') ?: '');
+define('DB_HOST', 'sql308.infinityfree.com');
+define('DB_NAME', 'if0_42086197_if0_gestiondesmemoires_uatm');
+define('DB_USER', 'if0_42086197');
+define('DB_PASS', 'test280601');
 define('DB_CHARSET', 'utf8mb4');
 
 function getDBConnection() {
@@ -24,7 +24,7 @@ function getDBConnection() {
             $pdo = new PDO($dsn, DB_USER, DB_PASS, $options);
         } catch (PDOException $e) {
             error_log("Erreur de connexion DB: " . $e->getMessage());
-            die("Erreur de connexion à la base de données. Veuillez réessayer plus tard.");
+            die("Erreur de connexion a la base de donnees.");
         }
     }
     
