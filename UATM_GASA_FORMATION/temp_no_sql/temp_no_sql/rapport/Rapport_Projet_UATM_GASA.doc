@@ -1,0 +1,524 @@
+<html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:w="urn:schemas-microsoft-com:office:word" xmlns="http://www.w3.org/TR/REC-html40">
+<head>
+<meta charset="UTF-8">
+<title>Rapport de Projet - UATM GASA FORMATION</title>
+<style>
+body { font-family: 'Times New Roman', serif; font-size: 12pt; line-height: 1.5; margin: 2cm; }
+h1 { font-size: 22pt; text-align: center; color: #1a3a5c; page-break-before: always; }
+h2 { font-size: 16pt; color: #1a3a5c; border-bottom: 2px solid #1a3a5c; padding-bottom: 5px; page-break-before: always; }
+h3 { font-size: 14pt; color: #2c5282; }
+h4 { font-size: 12pt; color: #3182ce; }
+table { border-collapse: collapse; width: 100%; margin: 10px 0; }
+th, td { border: 1px solid #ccc; padding: 8px; text-align: left; font-size: 11pt; }
+th { background-color: #1a3a5c; color: white; }
+.cover { text-align: center; padding: 100px 0; page-break-after: always; }
+.cover h1 { font-size: 28pt; color: #1a3a5c; border: none; page-break-before: avoid; }
+.cover h2 { font-size: 18pt; color: #2c5282; border: none; page-break-before: avoid; }
+.code { background: #f5f5f5; padding: 10px; font-family: 'Courier New', monospace; font-size: 9pt; border: 1px solid #ddd; white-space: pre-wrap; }
+.page-break { page-break-before: always; }
+</style>
+</head>
+<body>
+
+<!-- PAGE DE GARDE -->
+<div class="cover">
+<h1>UNIVERSITE AFRICAINE DE TECHNOLOGIE ET DE MANAGEMENT</h1>
+<h2>UATM GASA FORMATION</h2>
+<br><br>
+<p><strong>Filiere :</strong> Systeme Informatique et Logiciel (SIL)</p>
+<p><strong>Option :</strong> Informatique de Gestion</p>
+<p><strong>Annee academique :</strong> 2025 - 2026</p>
+<br><br>
+<h2 style="font-size: 20pt;">THEME :</h2>
+<h2 style="font-size: 16pt;">Conception et realisation d'une application web de gestion numerique des memoires a UATM GASA FORMATION</h2>
+<br><br><br>
+<table style="width: 60%; margin: 0 auto; border: none;">
+<tr><td><strong>Realise par :</strong></td><td>___________________________________</td></tr>
+<tr><td></td><td>___________________________________</td></tr>
+<tr><td><strong>Encadreur academique :</strong></td><td>___________________________________</td></tr>
+<tr><td><strong>Matiere :</strong></td><td>Genie Logiciel</td></tr>
+<tr><td><strong>Date :</strong></td><td>___________________________________</td></tr>
+</table>
+</div>
+
+<!-- DEDICACE -->
+<h2>DEDICACE</h2>
+<p>Nous dedicacions ce travail :</p>
+<ul>
+<li>A Dieu Tout-Puissant pour sa grace et sa protection</li>
+<li>A nos parents pour leur soutien inconditionnel</li>
+<li>A toute notre famille et nos proches</li>
+<li>A tous nos enseignants de l'UATM GASA FORMATION</li>
+</ul>
+
+<!-- REMERCIEMENTS -->
+<h2>REMERCIEMENTS</h2>
+<p>Nous tenons a remercier :</p>
+<ul>
+<li><strong>Dieu</strong> pour nous avoir donne la sante et le courage</li>
+<li><strong>Notre encadreur</strong> pour son orientation et ses conseils precieux</li>
+<li><strong>Le corps professoral</strong> de l'UATM GASA FORMATION</li>
+<li><strong>Notre famille</strong> pour leur soutien moral et financier</li>
+<li><strong>Nos amis</strong> pour leur cooperation</li>
+</ul>
+
+<!-- RESUME -->
+<h2>RESUME</h2>
+<p>Ce projet porte sur la <strong>Conception et realisation d'une application web de gestion numerique des memoires</strong> a l'UATM GASA FORMATION. Face aux problemes lies a la gestion manuelle des memoires (archivage papier, perte de documents, recherche lente), nous avons propose une solution numerique permettant le depot, la consultation, la validation et l'archivage securise des memoires de fin d'etudes.</p>
+
+<p><strong>Technologies utilisees :</strong> HTML5, CSS3, JavaScript, PHP 8, MySQL, phpMyAdmin</p>
+
+<p><strong>Resultats obtenus :</strong> Une application web fonctionnelle, responsive, securisee avec gestion multi-roles (Administrateur, Directeur, Professeur, Etudiant), depot PDF, validation academique, notifications en temps reel, et statistiques.</p>
+
+<!-- ABSTRACT -->
+<h2>ABSTRACT</h2>
+<p>This project focuses on the <strong>Design and implementation of a web application for digital management of thesis</strong> at UATM GASA FORMATION. Facing problems related to manual thesis management (paper archiving, document loss, slow search), we proposed a digital solution enabling submission, consultation, validation and secure archiving of end-of-study thesis.</p>
+
+<p><strong>Technologies used:</strong> HTML5, CSS3, JavaScript, PHP 8, MySQL, phpMyAdmin</p>
+
+<!-- LISTE DES SIGLES -->
+<h2>LISTE DES SIGLES ET ABRÉVIATIONS</h2>
+<table>
+<tr><th>Sigle</th><th>Signification</th></tr>
+<tr><td>UML</td><td>Unified Modeling Language</td></tr>
+<tr><td>MCD</td><td>Modele Conceptuel de Donnees</td></tr>
+<tr><td>MLD</td><td>Modele Logique de Donnees</td></tr>
+<tr><td>MPD</td><td>Modele Physique de Donnees</td></tr>
+<tr><td>PHP</td><td>PHP Hypertext Preprocessor</td></tr>
+<tr><td>SQL</td><td>Structured Query Language</td></tr>
+<tr><td>HTML</td><td>HyperText Markup Language</td></tr>
+<tr><td>CSS</td><td>Cascading Style Sheets</td></tr>
+<tr><td>JS</td><td>JavaScript</td></tr>
+<tr><td>CRUD</td><td>Create, Read, Update, Delete</td></tr>
+<tr><td>PDO</td><td>PHP Data Objects</td></tr>
+<tr><td>RBAC</td><td>Role-Based Access Control</td></tr>
+<tr><td>CSRF</td><td>Cross-Site Request Forgery</td></tr>
+<tr><td>MIME</td><td>Multipurpose Internet Mail Extensions</td></tr>
+<tr><td>PDF</td><td>Portable Document Format</td></tr>
+<tr><td>API</td><td>Application Programming Interface</td></tr>
+</table>
+
+<!-- INTRODUCTION GENERALE -->
+<h2>INTRODUCTION GENERALE</h2>
+<h3>1. Contexte</h3>
+<p>L'Universite Africaine de Technologie et de Management (UATM GASA FORMATION) est un etablissement d'enseignement superieur prive fonde en 1992 au Benin. Avec plus de 2000 etudiants inscrits dans 23 filieres agrees, la gestion des memoires de fin d'etudes represente un defi majeur.</p>
+
+<h3>2. Problematique</h3>
+<p>La gestion actuelle des memoires se fait de maniere manuelle avec de nombreuses contraintes :</p>
+<ul>
+<li>Archivage sur papier risquant la perte ou la deterioration</li>
+<li>Recherche lente et fastidieuse</li>
+<li>Difficulte d'acces a distance</li>
+<li>Absence de plateforme centralisee</li>
+<li>Pas de suivi en temps reel de la validation</li>
+</ul>
+
+<h3>3. Objectif general</h3>
+<p>Concevoir et realiser une application web permettant la gestion complete et numerique des memoires universitaires a l'UATM GASA FORMATION.</p>
+
+<h3>4. Annonce du plan</h3>
+<p>Ce rapport est structure en 5 chapitres :</p>
+<ul>
+<li><strong>Chapitre 1 :</strong> Presentation du cadre du projet</li>
+<li><strong>Chapitre 2 :</strong> Analyse et specification des besoins</li>
+<li><strong>Chapitre 3 :</strong> Conception du systeme</li>
+<li><strong>Chapitre 4 :</strong> Realisation de l'application</li>
+<li><strong>Chapitre 5 :</strong> Tests et validation</li>
+</ul>
+
+<!-- CHAPITRE 1 -->
+<h2>CHAPITRE 1 — PRESENTATION DU CADRE DU PROJET</h2>
+
+<h3>1.1 Presentation de l'UATM GASA FORMATION</h3>
+<p>La Fondation de l'UATM GASA FORMATION</p>
+<ul>
+<li><strong>Fondee en :</strong> 1992</li>
+<li><strong>Fondateur :</strong> Dr Theophane AYI</li>
+<li><strong>Statut :</strong> Universite privee</li>
+<li><strong>Effectif :</strong> Plus de 2000 etudiants</li>
+<li><strong>Filieres :</strong> 23 filieres agrees</li>
+<li><strong>Campus :</strong> Gbegamey, Abomey-Calavi, Agla, Akpakpa, Porto-Novo</li>
+</ul>
+
+<h3>1.2 Departement / Filiere</h3>
+<p><strong>Systeme Informatique et Logiciel (SIL)</strong> — Formation aux systemes informatiques, developpement de logiciels et technologies du web.</p>
+
+<h3>1.3 Contexte du projet</h3>
+<p>Les etudiants de fin d'etudes (L3 et M2) doivent rediger et deposer un memoire de fin d'etudes. Ce processus actuellement gere sur papier pose de nombreux problemes d'efficacite et de securite.</p>
+
+<h3>1.4 Problematique</h3>
+<p>Comment concevoir un systeme numerique permettant la gestion complete des memoires depuis le depot jusqu'a l'archivage, tout en garantissant la securite des documents et l'accessibilite a distance ?</p>
+
+<h3>1.5 Questions de recherche</h3>
+<ol>
+<li>Comment numriser le processus de depot des memoires ?</li>
+<li>Comment assurer la validation academique en ligne ?</li>
+<li>Comment garantir la securite et la confidentialite des documents ?</li>
+<li>Comment faciliter la recherche et la consultation des memoires ?</li>
+</ol>
+
+<h3>1.6 Objectifs</h3>
+<p><strong>Objectif general :</strong> Developper une plateforme web de gestion numerique des memoires.</p>
+
+<p><strong>Objectifs specifiques :</strong></p>
+<ul>
+<li>Permettre le depot securise de memoires en PDF</li>
+<li>Gerer les roles (Admin, Directeur, Professeur, Etudiant)</li>
+<li>Implementer le systeme de validation academique</li>
+<li>Creer une bibliotheque numerique consultable</li>
+<li>Fournir des statistiques et rapports</li>
+</ul>
+
+<!-- CHAPITRE 2 -->
+<h2>CHAPITRE 2 — ANALYSE ET SPECIFICATION DES BESOINS</h2>
+
+<h3>2.1 Etude de l'existant</h3>
+<p><strong>Systeme manuel actuel :</strong></p>
+<ul>
+<li>Les etudiants deposent leurs memoires en format papier</li>
+<li>Les professeurs relisent et corrigent physiquement</li>
+<li>L'archivage se fait dans des cartons</li>
+<li>La recherche se fait manuellement</li>
+</ul>
+
+<h3>2.2 Analyse critique</h3>
+<table>
+<tr><th>Probleme</th><th>Impact</th></tr>
+<tr><td>Lenteur du traitement</td><td>Delais de validation longs</td></tr>
+<tr><td>Perte de documents</td><td>Perte de travail academique</td></tr>
+<tr><td>Recherche difficile</td><td>Perte de temps considérable</td></tr>
+<tr><td>Pas de suivi</td><td>Incertitude pour les etudiants</td></tr>
+<tr><td>Pas de securite</td><td>Vol ou alteration possible</td></tr>
+</table>
+
+<h3>2.3 Solution proposee</h3>
+<p>Une application web permettant :</p>
+<ul>
+<li>Le depot numerique securise de memoires PDF</li>
+<li>La validation en ligne par les professeurs</li>
+<li>La consultation a distance</li>
+<li>L'archivage automatique</li>
+<li>Les notifications en temps reel</li>
+</ul>
+
+<h3>2.4 Identification des acteurs</h3>
+<table>
+<tr><th>Acteur</th><th>Description</th><th>Droits</th></tr>
+<tr><td>Administrateur</td><td>Gere le systeme</td><td>CRUD complet, logs, statistiques</td></tr>
+<tr><td>Directeur</td><td>Supervise les activites</td><td>Consultation, rapports, supervision</td></tr>
+<tr><td>Professeur</td><td>Valide les memoires</td><td>Lecture, validation, commentaires</td></tr>
+<tr><td>Etudiant</td><td>Depose et consulte</td><td>Depot, consultation, modification</td></tr>
+</table>
+
+<h3>2.5 Besoins fonctionnels</h3>
+<table>
+<tr><th>Fonctionnalite</th><th>Acteur</th><th>Priorite</th></tr>
+<tr><td>Authentification</td><td>Tous</td><td>Haute</td></tr>
+<tr><td>Depot memoire PDF</td><td>Etudiant (L3, M2)</td><td>Haute</td></tr>
+<tr><td>Validation memoire</td><td>Professeur</td><td>Haute</td></tr>
+<tr><td>Recherche avancee</td><td>Tous</td><td>Moyenne</td></tr>
+<tr><td>Notifications</td><td>Tous</td><td>Moyenne</td></tr>
+<tr><td>Statistiques</td><td>Admin, Directeur</td><td>Moyenne</td></tr>
+<tr><td>Gestion utilisateurs</td><td>Admin</td><td>Haute</td></tr>
+<tr><td>Commentaires</td><td>Etudiant, Prof</td><td>Moyenne</td></tr>
+<tr><td>Likes/Dislikes</td><td>Etudiant, Prof</td><td>Basse</td></tr>
+</table>
+
+<h3>2.6 Besoins non fonctionnels</h3>
+<ul>
+<li><strong>Performance :</strong> Temps de reponse < 2 secondes</li>
+<li><strong>Securite :</strong> Protection contre injections SQL, CSRF, XSS</li>
+<li><strong>Ergonomie :</strong> Interface intuitive et responsive</li>
+<li><strong>Disponibilite :</strong> Accessible 24h/24</li>
+<li><strong>Compatibilite :</strong> Chrome, Firefox, Edge, Safari</li>
+</ul>
+
+<h3>2.7 Contraintes techniques</h3>
+<table>
+<tr><th>Technologie</th><th>Usage</th></tr>
+<tr><td>HTML5</td><td>Structure des pages</td></tr>
+<tr><td>CSS3</td><td>Design et mise en forme</td></tr>
+<tr><td>JavaScript</td><td>Interactivite cote client</td></tr>
+<tr><td>PHP 8</td><td>Logique cote serveur</td></tr>
+<tr><td>MySQL</td><td>Base de donnees</td></tr>
+<tr><td>phpMyAdmin</td><td>Administration BDD</td></tr>
+</table>
+
+<!-- CHAPITRE 3 -->
+<h2>CHAPITRE 3 — CONCEPTION DU SYSTEME</h2>
+
+<h3>3.1 Methodologie utilisee</h3>
+<p>Nous avons utilise le <strong>Modele en Cascade (Waterfall)</strong> adapte :</p>
+<ol>
+<li>Analyse des besoins</li>
+<li>Conception</li>
+<li>Developpement</li>
+<li>Tests</li>
+<li>Deploiement</li>
+</ol>
+
+<h3>3.2 Diagramme de cas d'utilisation UML</h3>
+<table>
+<tr><th>Acteur</th><th>Cas d'utilisation</th></tr>
+<tr><td>Etudiant</td><td>Connexion, Deposer memoire, Consulter, Commenter, Liker, Modifier profil</td></tr>
+<tr><td>Professeur</td><td>Connexion, Lire memoire, Valider/Rejeter, Commenter, Liker</td></tr>
+<tr><td>Directeur</td><td>Connexion, Superviser, Consulter statistiques, Generer rapports</td></tr>
+<tr><td>Admin</td><td>Connexion, Gerer utilisateurs, Gerer filieres, Voir logs, Consulter statistiques</td></tr>
+</table>
+
+<h3>3.3 Diagramme de classes UML</h3>
+<table>
+<tr><th>Classe</th><th>Attributs</th><th>Methodes</th></tr>
+<tr><td>Utilisateur</td><td>id, nom, prenom, email, password, role, niveau, avatar</td><td>login(), logout(), modifierProfil()</td></tr>
+<tr><td>Memoire</td><td>id, titre, description, fichier, statut, note</td><td>deposer(), modifier(), supprimer(), consulter()</td></tr>
+<tr><td>Validation</td><td>id, decision, commentaire, note</td><td>approuver(), rejeter(), demanderRevision()</td></tr>
+<tr><td>Commentaire</td><td>id, contenu, date</td><td>ajouter(), supprimer()</td></tr>
+<tr><td>Notification</td><td>id, titre, message, type, lu</td><td>creer(), marquerLu()</td></tr>
+<tr><td>Filiere</td><td>id, nom, code, description</td><td>ajouter(), modifier(), supprimer()</td></tr>
+<tr><td>Like</td><td>id, memoire_id, utilisateur_id</td><td>ajouter(), retirer()</td></tr>
+</table>
+
+<h3>3.4 Diagramme de sequence — Depot memoire</h3>
+<p>1. L'etudiant se connecte</p>
+<p>2. L'etudiant remplit le formulaire de depot</p>
+<p>3. Le systeme verifie les droits (niveau L3/M2)</p>
+<p>4. Le systeme verifie le fichier PDF</p>
+<p>5. Le fichier est uploadé securitairement</p>
+<p>6. Le memoire est enregistre en base</p>
+<p>7. Le professeur est notifie</p>
+<p>8. L'etudiant recoit une confirmation</p>
+
+<h3>3.5 Diagramme d'activite — Validation memoire</h3>
+<p>1. Professeur recoit notification</p>
+<p>2. Professeur ouvre le memoire</p>
+<p>3. Professeur lit le document</p>
+<p>4. Professeur decide (Approuver/Rejeter/Revision)</p>
+<p>5. Si Approuver : note attribuee</p>
+<p>6. Si Rejeter : motif saisi</p>
+<p>7. Si Revision : commentaire ajoute</p>
+<p>8. L'etudiant est notifie</p>
+
+<h3>3.6 Conception MERISE</h3>
+
+<h4>3.6.1 MCD (Modele Conceptuel de Donnees)</h4>
+<table>
+<tr><th>Entite</th><th>Proprietes</th><th>Cardinalites</th></tr>
+<tr><td>UTILISATEUR</td><td>id, nom, prenom, email, password, role, niveau, avatar</td><td>1,n</td></tr>
+<tr><td>MEMOIRE</td><td>id, titre, description, fichier, statut, note, annee</td><td>n,1</td></tr>
+<tr><td>FILIERE</td><td>id, nom, code, description</td><td>1,n</td></tr>
+<tr><td>VALIDATION</td><td>id, decision, commentaire, note</td><td>n,1</td></tr>
+<tr><td>COMMENTAIRE</td><td>id, contenu, date</td><td>n,1</td></tr>
+<tr><td>NOTIFICATION</td><td>id, titre, message, type, lu</td><td>n,1</td></tr>
+<tr><td>LIKE</td><td>id</td><td>n,n</td></tr>
+</table>
+
+<p><strong>Associations :</strong></p>
+<ul>
+<li>UTILISATEUR (1,n) — depot — (1,1) MEMOIRE</li>
+<li>MEMOIRE (1,n) — appartient — (1,1) FILIERE</li>
+<li>MEMOIRE (1,n) — est valide par — (1,1) VALIDATION</li>
+<li>UTILISATEUR (1,n) — commente — (1,1) MEMOIRE</li>
+<li>MEMOIRE (1,n) — genere — (1,n) NOTIFICATION</li>
+<li>UTILISATEUR (1,n) — like — (1,n) MEMOIRE</li>
+</ul>
+
+<h4>3.6.2 MLD (Modele Logique de Donnees)</h4>
+<div class="code">UTILISATEUR (id, nom, prenom, email, password, role_id, niveau, avatar, statut)
+FILIERE (id, nom, code, description, statut)
+MEMOIRE (id, etudiant_id, co_auteur_id, filiere_id, professeur_id, titre, description, fichier_pdf, taille_fichier, annee_academique, statut, note_finale, mot_cles, type_travail)
+VALIDATION (id, memoire_id, validateur_id, decision, commentaire, note, date_validation)
+COMMENTAIRE (id, memoire_id, auteur_id, contenu, created_at)
+NOTIFICATION (id, utilisateur_id, titre, message, type, lu, lien)
+LIKE (id, memoire_id, utilisateur_id)
+HISTORIQUE (id, utilisateur_id, action, entite, entite_id, details, ip_address)</div>
+
+<h4>3.6.3 MPD (Modele Physique de Donnees)</h4>
+<p>Le MPD correspond au SQL genere automatiquement par MySQL via phpMyAdmin. Voir annexe SQL.</p>
+
+<h3>3.7 Dictionnaire de donnees</h3>
+<table>
+<tr><th>Table</th><th>Champ</th><th>Type</th><th>Description</th></tr>
+<tr><td>utilisateurs</td><td>id</td><td>INT AUTO_INCREMENT</td><td>Identifiant unique</td></tr>
+<tr><td>utilisateurs</td><td>nom</td><td>VARCHAR(100)</td><td>Nom de famille</td></tr>
+<tr><td>utilisateurs</td><td>prenom</td><td>VARCHAR(100)</td><td>Prenom</td></tr>
+<tr><td>utilisateurs</td><td>email</td><td>VARCHAR(255)</td><td>Adresse email unique</td></tr>
+<tr><td>utilisateurs</td><td>password</td><td>VARCHAR(255)</td><td>Mot de passe hashé</td></tr>
+<tr><td>utilisateurs</td><td>role_id</td><td>INT FK</td><td>Referenc role</td></tr>
+<tr><td>utilisateurs</td><td>niveau</td><td>VARCHAR(20)</td><td>Niveau etudes (L1-M2)</td></tr>
+<tr><td>memoires</td><td>id</td><td>INT AUTO_INCREMENT</td><td>Identifiant unique</td></tr>
+<tr><td>memoires</td><td>etudiant_id</td><td>INT FK</td><td>Auteur principal</td></tr>
+<tr><td>memoires</td><td>co_auteur_id</td><td>INT FK NULL</td><td>Co-auteur (binome)</td></tr>
+<tr><td>memoires</td><td>titre</td><td>VARCHAR(500)</td><td>Titre du memoire</td></tr>
+<tr><td>memoires</td><td>statut</td><td>ENUM</td><td>Statut du memoire</td></tr>
+<tr><td>memoires</td><td>type_travail</td><td>ENUM</td><td>individuel ou binome</td></tr>
+</table>
+
+<!-- CHAPITRE 4 -->
+<h2>CHAPITRE 4 — REALISATION DE L'APPLICATION</h2>
+
+<h3>4.1 Environnement materiel</h3>
+<table>
+<tr><th>Composant</th><th>Configuration</th></tr>
+<tr><td>Processeur</td><td>Intel Core i5 ou superieur</td></tr>
+<tr><td>RAM</td><td>8 Go minimum</td></tr>
+<tr><td>Disque dur</td><td>256 Go SSD</td></tr>
+<tr><td>OS</td><td>Windows 10/11</td></tr>
+</table>
+
+<h3>4.2 Environnement logiciel</h3>
+<table>
+<tr><th>Logiciel</th><th>Usage</th></tr>
+<tr><td>VS Code</td><td>Editeur de code</td></tr>
+<tr><td>WAMP Server</td><td>Serveur local (Apache + PHP + MySQL)</td></tr>
+<tr><td>phpMyAdmin</td><td>Administration MySQL</td></tr>
+<tr><td>Chrome</td><td>Test et navigateur</td></tr>
+<tr><td>Git</td><td>Versionning</td></tr>
+</table>
+
+<h3>4.3 Architecture logicielle</h3>
+<p>Architecture 3 couches :</p>
+<ul>
+<li><strong>Couche Presentation :</strong> HTML, CSS, JavaScript (frontend)</li>
+<li><strong>Couche Metier :</strong> PHP (logique applicative)</li>
+<li><strong>Couche Persistance :</strong> MySQL (base de donnees)</li>
+</ul>
+
+<h3>4.4 Structure du projet</h3>
+<div class="code">UATM_GASA_FORMATION/
+├── assets/
+│   ├── css/style.css
+│   ├── js/main.js
+│   ├── images/
+│   └── uploads/
+├── config/database.php
+├── controllers/
+│   ├── upload.php
+│   └── likes.php
+├── includes/
+│   ├── header.php
+│   ├── footer.php
+│   └── functions.php
+├── auth/
+│   ├── login.php
+│   ├── register.php
+│   ├── logout.php
+│   └── session.php
+├── etudiant/
+│   ├── index.php
+│   ├── deposer.php
+│   ├── memoires.php
+│   ├── voir.php
+│   ├── modifier.php
+│   └── supprimer.php
+├── professeur/
+│   ├── index.php
+│   ├── memoires.php
+│   └── voir.php
+├── admin/
+│   ├── index.php
+│   ├── utilisateurs.php
+│   ├── filieres.php
+│   ├── historique.php
+│   └── ...
+├── dashboard/
+│   ├── index.php
+│   └── directeur.php
+├── pages/
+│   ├── bibliotheque.php
+│   ├── notifications.php
+│   ├── profil.php
+│   ├── rapports.php
+│   ├── lire.php
+│   └── like.php
+├── sql/
+│   ├── schema.sql
+│   └── filieres.sql
+└── index.php</div>
+
+<h3>4.5 Creation Base MySQL</h3>
+<p>La base de donnees <strong>uatm_gasa_memoires</strong> contient 12 tables :</p>
+<ul>
+<li>roles, utilisateurs, filieres, memoires, validations</li>
+<li>commentaires, likes, notifications, rapports, historiques, archives</li>
+</ul>
+<p>Voir annexe SQL pour le code complet.</p>
+
+<h3>4.6 Securite implementee</h3>
+<table>
+<tr><th>Menace</th><th>Protection</th></tr>
+<tr><td>Injection SQL</td><td>PDO + Prepared Statements</td></tr>
+<tr><td>CSRF</td><td>Token CSRF sur chaque formulaire</td></tr>
+<tr><td>XSS</td><td>Fonction sanitize() = htmlspecialchars()</td></tr>
+<tr><td>Mot de passe</td><td>password_hash() + password_verify()</td></tr>
+<tr><td>Upload</td><td>Verification MIME + extension + taille</td></tr>
+<tr><td>Access</td><td>RBAC par role</td></tr>
+<tr><td>Sessions</td><td>Cookies httponly + samesite</td></tr>
+</table>
+
+<!-- CHAPITRE 5 -->
+<h2>CHAPITRE 5 — TESTS ET VALIDATION</h2>
+
+<h3>5.1 Plan de test</h3>
+<table>
+<tr><th>TC</th><th>Description</th><th>Resultat</th></tr>
+<tr><td>TC1</td><td>Connexion avec identifiants valides</td><td>✅ Succes</td></tr>
+<tr><td>TC2</td><td>Connexion avec identifiants invalides</td><td>✅ Erreur affichee</td></tr>
+<tr><td>TC3</td><td>Inscription etudiant L1</td><td>✅ Succes</td></tr>
+<tr><td>TC4</td><td>Depot memoire par etudiant L1</td><td>✅ Bloque</td></tr>
+<tr><td>TC5</td><td>Depot memoire par etudiant L3</td><td>✅ Succes</td></tr>
+<tr><td>TC6</td><td>Depot memoire en binome</td><td>✅ Succes</td></tr>
+<tr><td>TC7</td><td>Validation memoire par prof</td><td>✅ Succes</td></tr>
+<tr><td>TC8</td><td>Notification prof apres depot</td><td>✅ Recue</td></tr>
+<tr><td>TC9</td><td>Consultation memoire</td><td>✅ Affichage PDF</td></tr>
+<tr><td>TC10</td><td>Like/Dislike</td><td>✅ Fonctionne</td></tr>
+<tr><td>TC11</td><td>Commentaire etudiant</td><td>✅ Succes</td></tr>
+<tr><td>TC12</td><td>CRUD utilisateurs admin</td><td>✅ Succes</td></tr>
+<tr><td>TC13</td><td>Rapports statistiques</td><td>✅ Affichage</td></tr>
+<tr><td>TC14</td><td>Responsive mobile</td><td>✅ Adaptatif</td></tr>
+</table>
+
+<h3>5.2 Analyse des resultats</h3>
+<p>Tous les tests passes avec succes. L'application fonctionne correctement sur tous les navigateurs testes (Chrome, Firefox, Edge). Le design est responsive et s'adapte aux ecrans mobiles.</p>
+
+<!-- CONCLUSION GENERALE -->
+<h2>CONCLUSION GENERALE</h2>
+<h3>Bilan</h3>
+<p>Nous avons reussi a concevoir et realiser une application web complete de gestion des memoires pour l'UATM GASA FORMATION. L'application permet :</p>
+<ul>
+<li>Le depot securise de memoires PDF</li>
+<li>La gestion multi-roles (Admin, Directeur, Professeur, Etudiant)</li>
+<li>La validation academique en ligne</li>
+<li>La consultation securisee (sans telechargement)</li>
+<li>Les notifications en temps reel</li>
+<li>Les rapports et statistiques</li>
+</ul>
+
+<h3>Limites</h3>
+<ul>
+<li>Pas de systeme de paiement en ligne</li>
+<li>Pas d'integration email externe</li>
+<li>Pas de version mobile native</li>
+</ul>
+
+<h3>Perspectives futures</h3>
+<ul>
+<li>Application mobile native (Android/iOS)</li>
+<li>Integration paiement en ligne</li>
+<li>Signature numerique des memoires</li>
+<li>Systeme de plagiat</li>
+<li>API REST pour integration tierce</li>
+</ul>
+
+<!-- BIBLIOGRAPHIE -->
+<h2>BIBLIOGRAPHIE</h2>
+<ul>
+<li>PHP Documentation — <em>https://www.php.net/docs.php</em></li>
+<li>MySQL 8.0 Reference Manual — <em>https://dev.mysql.com/doc/</em></li>
+<li>W3Schools — <em>https://www.w3schools.com</em></li>
+<li>MDN Web Docs — <em>https://developer.mozilla.org</em></li>
+<li>UML 2.5 Specification — <em>https://www.omg.org/spec/UML</em></li>
+<li>Merise Methodology — <em>Larman, C. Applying UML and Patterns</em></li>
+</ul>
+
+</body>
+</html>

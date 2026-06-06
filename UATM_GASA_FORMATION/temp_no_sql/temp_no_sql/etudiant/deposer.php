@@ -1,0 +1,317 @@
+<?php
+$pageTitle = 'Déposer un Mémoire - UATM GASA FORMATION';
+require_once __DIR__ . '/../includes/header.php';
+require_once __DIR__ . '/../auth/session.php';
+require_once __DIR__ . '/../controllers/upload.php';
+
+if (!isLoggedIn() || !hasRole('etudiant')) {
+    redirect($baseUrl . 'auth/login.php');
+}
+
+$db = getDBConnection();
+$userId = $_SESSION['user_id'];
+$errors = [];
+$success = '';
+
+// Verifier le niveau de l'etudiant
+$stmt = $db->prepare("SELECT niveau FROM utilisateurs WHERE id = ?");
+$stmt->execute([$userId]);
+$niveau = $stmt->fetchColumn();
+
+$niveauxDepot = ['L3', 'M2'];
+$peutDeposer = in_array($niveau, $niveauxDepot);
+
+// Récupérer les filières
+$filieres = $db->query("SELECT * FROM filieres WHERE statut = 'active' ORDER BY nom")->fetchAll();
+
+// Récupérer les professeurs actifs uniquement
+$professeurs = $db->query("SELECT id, nom, prenom FROM utilisateurs WHERE role_id = 3 AND statut = 'actif' ORDER BY nom, prenom")->fetchAll();
+
+// Récupérer les étudiants pour le co-auteur (sauf l'étudiant connecté)
+$etudiants = $db->prepare("SELECT id, nom, prenom, niveau FROM utilisateurs WHERE role_id = 4 AND statut = 'actif' AND id != ? ORDER BY nom, prenom");
+$etudiants->execute([$userId]);
+$etudiants = $etudiants->fetchAll();
+
+// Traitement du formulaire
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    if (!verifyCSRFToken($_POST['csrf_token'] ?? '')) {
+        $errors[] = 'Token de securite invalide.';
+    } else {
+        $titre = trim($_POST['titre'] ?? '');
+        $description = trim($_POST['description'] ?? '');
+        $filiere_id = intval($_POST['filiere_id'] ?? 0);
+        $professeur_id = intval($_POST['professeur_id'] ?? 0);
+        $annee_academique = trim($_POST['annee_academique'] ?? '');
+        $mot_cles = trim($_POST['mot_cles'] ?? '');
+        $type_travail = $_POST['type_travail'] ?? 'individuel';
+        $co_auteur_id = intval($_POST['co_auteur_id'] ?? 0);
+
+        // Validation
+        if (empty($titre)) $errors[] = 'Le titre est requis.';
+        if (strlen($titre) < 5) $errors[] = 'Le titre doit contenir au moins 5 caracteres.';
+        if (strlen($titre) > 500) $errors[] = 'Le titre ne doit pas depasser 500 caracteres.';
+        if (empty($description)) $errors[] = 'La description est requise.';
+        if ($filiere_id <= 0) $errors[] = 'Veuillez selectionner une filiere.';
+        if ($professeur_id <= 0) $errors[] = 'Veuillez choisir un maitre de memoire.';
+        if ($type_travail === 'binome' && $co_auteur_id <= 0) $errors[] = 'Veuillez choisir un co-auteur.';
+        if ($type_travail === 'binome' && $co_auteur_id == $userId) $errors[] = 'Vous ne pouvez pas vous co-auteur.';
+        if (empty($annee_academique)) $errors[] = 'L\'annee academique est requise.';
+
+        // Vérifier le fichier
+        if (!isset($_FILES['fichier_pdf']) || $_FILES['fichier_pdf']['error'] === UPLOAD_ERR_NO_FILE) {
+            $errors[] = 'Le fichier PDF est requis.';
+        }
+
+        // Upload
+        if (empty($errors)) {
+            $uploadResult = handleMemoireUpload($_FILES['fichier_pdf'], $userId);
+            
+            if ($uploadResult['success']) {
+                // Enregistrer en base
+                $stmt = $db->prepare("
+                    INSERT INTO memoires (etudiant_id, co_auteur_id, filiere_id, professeur_id, titre, description, fichier_pdf, taille_fichier, annee_academique, statut, mot_cles, type_travail) 
+                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 'soumis', ?, ?)
+                ");
+                $stmt->execute([
+                    $userId,
+                    $type_travail === 'binome' ? $co_auteur_id : null,
+                    $filiere_id,
+                    $professeur_id,
+                    $titre,
+                    $description,
+                    $uploadResult['filename'],
+                    $uploadResult['size'],
+                    $annee_academique,
+                    $mot_cles,
+                    $type_travail
+                ]);
+
+                $memoireId = $db->lastInsertId();
+
+                // Journaliser
+                logAction($userId, 'deposer', 'memoire', $memoireId, 'Depot memoire: ' . $titre);
+
+                // Notifier le professeur choisi
+                $notifMsg = $_SESSION['user_prenom'] . ' ' . $_SESSION['user_nom'];
+                if ($type_travail === 'binome' && $co_auteur_id) {
+                    $stmtCo = $db->prepare("SELECT prenom, nom FROM utilisateurs WHERE id = ?");
+                    $stmtCo->execute([$co_auteur_id]);
+                    $coAuteur = $stmtCo->fetch();
+                    $notifMsg .= ' et ' . ($coAuteur ? $coAuteur['prenom'] . ' ' . $coAuteur['nom'] : 'un co-auteur');
+                }
+                $notifMsg .= ' vous a designe comme maitre de memoire pour "' . $titre . '".';
+                
+                createNotification(
+                    $professeur_id,
+                    'Nouveau memoire soumis',
+                    $notifMsg,
+                    'info',
+                    'professeur/voir.php?id=' . $memoireId
+                );
+
+                setFlash('success', 'Memoire depose avec succes !');
+                redirect('memoires.php');
+            } else {
+                $errors[] = $uploadResult['message'];
+            }
+        }
+    }
+}
+?>
+
+<div class="dashboard-container">
+    <div class="dashboard-header">
+        <h1 class="dashboard-title">Déposer un Mémoire</h1>
+        <a href="index.php" class="btn btn-outline btn-sm">← Retour</a>
+    </div>
+
+    <?php if (!empty($errors)): ?>
+    <div class="alert alert-error">
+        <ul>
+            <?php foreach ($errors as $error): ?>
+                <li><?= sanitize($error) ?></li>
+            <?php endforeach; ?>
+        </ul>
+    </div>
+    <?php endif; ?>
+
+    <?php if (!$peutDeposer): ?>
+    <div class="card" style="max-width: 800px;">
+        <div class="card-body" style="text-align: center; padding: 3rem;">
+            <div style="font-size: 3rem; margin-bottom: 1rem;">&#128274;</div>
+            <h3 style="color: var(--gray-600); margin-bottom: 0.5rem;">Acces non autorise</h3>
+            <p style="color: var(--gray-500); margin-bottom: 1.5rem;">
+                Seuls les etudiants de <strong>Licence 3 (L3)</strong> et <strong>Master 2 (M2)</strong> peuvent deposer un memoire de fin d'annee.<br>
+                Votre niveau actuel : <strong><?= sanitize($niveau ?: 'Non defini') ?></strong>
+            </p>
+            <a href="index.php" class="btn btn-primary">Retour au tableau de bord</a>
+        </div>
+    </div>
+    <?php else: ?>
+    <div class="card" style="max-width: 800px;">
+        <div class="card-body">
+            <form method="POST" action="" enctype="multipart/form-data" id="deposerForm" novalidate>
+                <?= csrfField() ?>
+
+                <div class="form-group">
+                    <label for="titre">Titre du mémoire *</label>
+                    <input type="text" id="titre" name="titre" class="form-control" 
+                           value="<?= sanitize($_POST['titre'] ?? '') ?>" required maxlength="500">
+                    <span class="form-error" id="titreError"></span>
+                </div>
+
+                <div class="form-group">
+                    <label for="description">Description / Résumé *</label>
+                    <textarea id="description" name="description" class="form-control" rows="5" required><?= sanitize($_POST['description'] ?? '') ?></textarea>
+                    <span class="form-error" id="descriptionError"></span>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="type_travail">Type de travail *</label>
+                        <select id="type_travail" name="type_travail" class="form-control" required>
+                            <option value="individuel" <?= ($_POST['type_travail'] ?? 'individuel') == 'individuel' ? 'selected' : '' ?>>Individuel</option>
+                            <option value="binome" <?= ($_POST['type_travail'] ?? '') == 'binome' ? 'selected' : '' ?>>Binome (2 etudiants)</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group" id="coAuteurGroup" style="display: none;">
+                        <label for="co_auteur_id">Co-auteur *</label>
+                        <select id="co_auteur_id" name="co_auteur_id" class="form-control">
+                            <option value="">-- Selectionner un etudiant --</option>
+                            <?php foreach ($etudiants as $e): ?>
+                            <option value="<?= $e['id'] ?>" <?= (intval($_POST['co_auteur_id'] ?? 0) == $e['id']) ? 'selected' : '' ?>>
+                                <?= sanitize($e['prenom'] . ' ' . $e['nom'] . ' (' . ($e['niveau'] ?? '') . ')') ?>
+                            </option>
+                            <?php endforeach; ?>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="filiere_id">Filiere *</label>
+                        <select id="filiere_id" name="filiere_id" class="form-control" required>
+                            <option value="">-- Selectionner --</option>
+                            <?php foreach ($filieres as $f): ?>
+                            <option value="<?= $f['id'] ?>" <?= (intval($_POST['filiere_id'] ?? 0) == $f['id']) ? 'selected' : '' ?>>
+                                <?= sanitize($f['nom']) ?>
+                            </option>
+                            <?php endforeach; ?>
+                        </select>
+                        <span class="form-error" id="filiereError"></span>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="professeur_id">Maitre de memoire *</label>
+                        <select id="professeur_id" name="professeur_id" class="form-control" required>
+                            <option value="">-- Selectionner --</option>
+                            <?php foreach ($professeurs as $p): ?>
+                            <option value="<?= $p['id'] ?>" <?= (intval($_POST['professeur_id'] ?? 0) == $p['id']) ? 'selected' : '' ?>>
+                                <?= sanitize($p['prenom'] . ' ' . $p['nom']) ?>
+                            </option>
+                            <?php endforeach; ?>
+                        </select>
+                        <span class="form-error" id="professeurError"></span>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="annee_academique">Annee academique *</label>
+                    <input type="text" id="annee_academique" name="annee_academique" class="form-control" 
+                           placeholder="ex: 2024-2025" value="<?= sanitize($_POST['annee_academique'] ?? '') ?>" required>
+                    <span class="form-error" id="anneeError"></span>
+                </div>
+
+                <div class="form-group">
+                    <label for="mot_cles">Mots-cles</label>
+                    <input type="text" id="mot_cles" name="mot_cles" class="form-control" 
+                           placeholder="Séparés par des virgules" value="<?= sanitize($_POST['mot_cles'] ?? '') ?>">
+                </div>
+
+                <div class="form-group">
+                    <label for="fichier_pdf">Fichier PDF * (max 10 Mo)</label>
+                    <input type="file" id="fichier_pdf" name="fichier_pdf" class="form-control" 
+                           accept=".pdf,application/pdf" required>
+                    <span class="form-help" id="fileInfo"></span>
+                    <span class="form-error" id="fileError"></span>
+                </div>
+
+                <div style="display: flex; gap: 1rem; margin-top: 1.5rem;">
+                    <button type="submit" class="btn btn-primary">Soumettre le mémoire</button>
+                    <a href="index.php" class="btn btn-outline">Annuler</a>
+                </div>
+            </form>
+        </div>
+    </div>
+    <?php endif; ?>
+</div>
+
+<script>
+// Afficher/masquer le champ co-auteur
+document.getElementById('type_travail').addEventListener('change', function() {
+    var coAuteurGroup = document.getElementById('coAuteurGroup');
+    var coAuteurSelect = document.getElementById('co_auteur_id');
+    if (this.value === 'binome') {
+        coAuteurGroup.style.display = 'block';
+        coAuteurSelect.required = true;
+    } else {
+        coAuteurGroup.style.display = 'none';
+        coAuteurSelect.required = false;
+        coAuteurSelect.value = '';
+    }
+});
+
+// Initialiser au chargement
+if (document.getElementById('type_travail').value === 'binome') {
+    document.getElementById('coAuteurGroup').style.display = 'block';
+}
+
+document.getElementById('deposerForm').addEventListener('submit', function(e) {
+    let valid = true;
+    
+    // Reset erreurs
+    document.querySelectorAll('.form-error').forEach(el => el.textContent = '');
+    
+    // Titre
+    const titre = document.getElementById('titre');
+    if (!titre.value.trim()) { document.getElementById('titreError').textContent = 'Le titre est requis.'; valid = false; }
+    else if (titre.value.length < 5) { document.getElementById('titreError').textContent = 'Minimum 5 caractères.'; valid = false; }
+    
+    // Description
+    const desc = document.getElementById('description');
+    if (!desc.value.trim()) { document.getElementById('descriptionError').textContent = 'La description est requise.'; valid = false; }
+    
+    // Filiere
+    const filiere = document.getElementById('filiere_id');
+    if (!filiere.value) { document.getElementById('filiereError').textContent = 'Selectionnez une filiere.'; valid = false; }
+    
+    // Professeur
+    const prof = document.getElementById('professeur_id');
+    if (!prof.value) { document.getElementById('professeurError').textContent = 'Selectionnez un maitre de memoire.'; valid = false; }
+    
+    // Annee
+    const annee = document.getElementById('annee_academique');
+    if (!annee.value.trim()) { document.getElementById('anneeError').textContent = 'L\'année académique est requise.'; valid = false; }
+    
+    // Fichier
+    const fichier = document.getElementById('fichier_pdf');
+    if (!fichier.files.length) { document.getElementById('fileError').textContent = 'Le fichier PDF est requis.'; valid = false; }
+    else if (fichier.files[0].size > 10 * 1024 * 1024) { document.getElementById('fileError').textContent = 'Le fichier dépasse 10 Mo.'; valid = false; }
+    else if (fichier.files[0].type !== 'application/pdf') { document.getElementById('fileError').textContent = 'Seuls les PDF sont acceptés.'; valid = false; }
+    
+    if (!valid) e.preventDefault();
+});
+
+document.getElementById('fichier_pdf').addEventListener('change', function() {
+    const info = document.getElementById('fileInfo');
+    if (this.files.length) {
+        const file = this.files[0];
+        const size = (file.size / (1024 * 1024)).toFixed(2);
+        info.textContent = file.name + ' (' + size + ' Mo)';
+        info.style.color = file.type === 'application/pdf' && file.size <= 10 * 1024 * 1024 ? 'var(--success)' : 'var(--danger)';
+    }
+});
+</script>
+
+<?php require_once __DIR__ . '/../includes/footer.php'; ?>

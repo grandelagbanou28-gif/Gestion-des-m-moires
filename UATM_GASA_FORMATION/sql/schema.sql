@@ -4,11 +4,19 @@
 -- Compatible phpMyAdmin / MySQL 8.0+
 -- =====================================================
 
-CREATE DATABASE IF NOT EXISTS `uatm_gasa_memoires`
+CREATE DATABASE IF NOT EXISTS `if0_42112820_gestion_memoire`
     CHARACTER SET utf8mb4
     COLLATE utf8mb4_unicode_ci;
 
-USE `uatm_gasa_memoires`;
+-- ------------------------------------------------------------
+-- (Optionnel) Création d’un compte d’application
+-- ------------------------------------------------------------
+-- Uncomment and adjust the lines below if you have a MySQL user with CREATE USER privilege.
+-- CREATE USER IF NOT EXISTS 'myapp_user'@'localhost' IDENTIFIED BY 'myStrongPassword!';
+-- GRANT ALL PRIVILEGES ON `if0_42112820_gestion_memoire`.* TO 'myapp_user'@'localhost';
+-- FLUSH PRIVILEGES;
+
+USE `if0_42112820_gestion_memoire`;
 
 -- =====================================================
 -- TABLE : roles

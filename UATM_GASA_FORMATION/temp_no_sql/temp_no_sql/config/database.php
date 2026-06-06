@@ -4,10 +4,10 @@
  * InfinityFree MySQL
  */
 
-define('DB_HOST', 'sql308.infinityfree.com');
-define('DB_NAME', 'if0_42114136_uatmmemoires');
-define('DB_USER', 'if0_42114136');
-define('DB_PASS', 'GtvGOe0loC1');
+define('DB_HOST', 'localhost');
+define('DB_NAME', 'uatm_gasa_memoires');
+define('DB_USER', 'root');
+define('DB_PASS', '');
 define('DB_CHARSET', 'utf8mb4');
 
 function getDBConnection() {
